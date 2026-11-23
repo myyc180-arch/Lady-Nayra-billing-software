@@ -10,7 +10,11 @@ jobs:
   build-windows:
     runs-on: windows-latest
 
+    permissions:
+      contents: read
+
     steps:
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -22,20 +26,26 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Install Electron
-        run: npm install --save-dev electron electron-builder
+      - name: Install Electron and Electron Builder
+        run: npm install --save-dev electron@22.3.27 electron-builder@24.13.3
 
       - name: Prepare web folder
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path www
-          Copy-Item index.html www/index.html -Force
+          New-Item -ItemType Directory -Force -Path www | Out-Null
+
+          if (Test-Path index.html) {
+            Copy-Item index.html www/index.html -Force
+          }
+
           if (Test-Path manifest.json) {
             Copy-Item manifest.json www/manifest.json -Force
           }
+
           if (Test-Path sw.js) {
             Copy-Item sw.js www/sw.js -Force
           }
+
           if (Test-Path icon.png) {
             Copy-Item icon.png www/icon.png -Force
           }
@@ -51,8 +61,11 @@ jobs:
             const win = new BrowserWindow({
               width: 1200,
               height: 800,
+              minWidth: 900,
+              minHeight: 600,
               webPreferences: {
-                contextIsolation: true
+                contextIsolation: true,
+                nodeIntegration: false
               }
             });
 
@@ -76,12 +89,69 @@ jobs:
           });
           "@ | Set-Content main.js
 
+      - name: Create Electron package.json
+        shell: pwsh
+        run: |
+          @"
+          {
+            "name": "lady-nayra-billing",
+            "version": "1.0.0",
+            "description": "LADY NAYRA Billing Software",
+            "main": "main.js",
+            "author": "LADY NAYRA",
+            "license": "MIT",
+            "scripts": {
+              "start": "electron .",
+              "dist": "electron-builder --win --x64 --publish never"
+            },
+            "devDependencies": {
+              "electron": "22.3.27",
+              "electron-builder": "24.13.3"
+            },
+            "build": {
+              "appId": "com.ladynayra.billing",
+              "productName": "LADY NAYRA Billing",
+              "directories": {
+                "output": "dist"
+              },
+              "files": [
+                "main.js",
+                "www/**/*",
+                "package.json"
+              ],
+              "win": {
+                "target": [
+                  {
+                    "target": "nsis",
+                    "arch": [
+                      "x64"
+                    ]
+                  }
+                ]
+              },
+              "nsis": {
+                "oneClick": false,
+                "allowToChangeInstallationDirectory": true,
+                "createDesktopShortcut": true,
+                "createStartMenuShortcut": true
+              }
+            }
+          }
+          "@ | Set-Content electron-package.json
+
+      - name: Use Electron package configuration
+        shell: pwsh
+        run: Copy-Item electron-package.json package.json -Force
+
       - name: Build Windows EXE
-        run: npx electron-builder --win --x64
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --win --x64 --publish never
 
       - name: Upload Windows EXE
         uses: actions/upload-artifact@v4
         with:
-          name: LADY-NAYRA-Windows
+          name: LADY-NAYRA-Windows-EXE
           path: dist/*.exe
           if-no-files-found: error
