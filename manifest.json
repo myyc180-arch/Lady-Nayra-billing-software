@@ -1,19 +1,14 @@
 {
-  "name": "LADY NAYRA - Billing & Inventory",
+  "name": "LADY NAYRA Billing Pro",
   "short_name": "LADY NAYRA",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f8fafc",
-  "theme_color": "#e11d48",
+  "background_color": "#f4f6fb",
+  "theme_color": "#7c3aed",
   "icons": [
     {
-      "src": "https://via.placeholder.com/192/e11d48/ffffff?text=LN",
+      "src": "icon.png",
       "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "https://via.placeholder.com/512/e11d48/ffffff?text=LN",
-      "sizes": "512x512",
       "type": "image/png"
     }
   ]

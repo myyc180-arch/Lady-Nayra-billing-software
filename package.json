@@ -1,26 +1,30 @@
 {
-  "name": "lady-nayra-billing",
-  "version": "1.0.0",
-  "description": "LADY NAYRA Inventory, GST Billing & WhatsApp PDF Software",
+  "name": "lady-nayra-billing-pro",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Original multi-module billing, inventory and POS software",
   "main": "electron-main.js",
   "scripts": {
     "start": "node server.js",
     "desktop": "electron .",
-    "build:win7": "electron-builder --win --ia32 --x64"
+    "build:win": "electron-builder --win --x64"
   },
   "dependencies": {
-    "express": "^4.19.2",
-    "form-data": "^4.0.0",
-    "multer": "^1.4.5-lts.1",
-    "node-fetch": "^2.7.0"
+    "express": "^4.21.2",
+    "@capacitor/core": "^6.2.1",
+    "@capacitor/android": "^6.2.1"
   },
   "devDependencies": {
     "electron": "^22.3.27",
-    "electron-builder": "^24.13.3"
+    "electron-builder": "^24.13.3",
+    "@capacitor/cli": "^6.2.1"
   },
   "build": {
     "appId": "com.ladynayra.billing",
-    "productName": "LADY NAYRA",
-    "win": { "target": "nsis" }
+    "productName": "LADY NAYRA Billing Pro",
+    "win": {
+      "target": "nsis",
+      "icon": "icon.png"
+    }
   }
 }
