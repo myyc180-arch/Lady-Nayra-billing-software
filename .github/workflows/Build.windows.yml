@@ -23,11 +23,34 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Install Capacitor
+        run: npm install @capacitor/core @capacitor/cli
+
+      - name: Install Electron
+        run: npm install electron electron-builder --save-dev
+
+      - name: Prepare web folder
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "www")) {
+            New-Item -ItemType Directory -Path "www"
+          }
+
+          if (Test-Path "index.html") {
+            Copy-Item "index.html" "www/index.html" -Force
+          }
+
+          if (Test-Path "manifest.json") {
+            Copy-Item "manifest.json" "www/manifest.json" -Force
+          }
+
       - name: Build Windows EXE
-        run: npm run build:win7
+        run: npx electron-builder --win --x64
 
       - name: Upload Windows EXE
         uses: actions/upload-artifact@v4
         with:
           name: LADY-NAYRA-WINDOWS
-          path: dist/**/*.exe
+          path: |
+            dist/*.exe
+            dist/*.msi
