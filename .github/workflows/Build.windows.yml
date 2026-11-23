@@ -18,13 +18,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
 
       - name: Install dependencies
         run: npm install
-
-      - name: Install Capacitor
-        run: npm install @capacitor/core @capacitor/cli
 
       - name: Install Electron
         run: npm install --save-dev electron electron-builder
@@ -32,7 +28,7 @@ jobs:
       - name: Prepare web folder
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path www | Out-Null
+          New-Item -ItemType Directory -Force -Path www
           Copy-Item index.html www/index.html -Force
           if (Test-Path manifest.json) {
             Copy-Item manifest.json www/manifest.json -Force
@@ -44,6 +40,42 @@ jobs:
             Copy-Item icon.png www/icon.png -Force
           }
 
+      - name: Create Electron main.js
+        shell: pwsh
+        run: |
+          @"
+          const { app, BrowserWindow } = require('electron');
+          const path = require('path');
+
+          function createWindow() {
+            const win = new BrowserWindow({
+              width: 1200,
+              height: 800,
+              webPreferences: {
+                contextIsolation: true
+              }
+            });
+
+            win.loadFile(path.join(__dirname, 'www', 'index.html'));
+          }
+
+          app.whenReady().then(() => {
+            createWindow();
+
+            app.on('activate', () => {
+              if (BrowserWindow.getAllWindows().length === 0) {
+                createWindow();
+              }
+            });
+          });
+
+          app.on('window-all-closed', () => {
+            if (process.platform !== 'darwin') {
+              app.quit();
+            }
+          });
+          "@ | Set-Content main.js
+
       - name: Build Windows EXE
         run: npx electron-builder --win --x64
 
@@ -51,7 +83,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: LADY-NAYRA-Windows
-          path: |
-            dist/*.exe
-            dist/*.msi
-          if-no-files-found: warn
+          path: dist/*.exe
+          if-no-files-found: error
