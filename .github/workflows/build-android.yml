@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -24,8 +23,7 @@ jobs:
         run: npm install
 
       - name: Install Capacitor
-        run: |
-          npm install @capacitor/core @capacitor/cli @capacitor/android
+        run: npm install @capacitor/core @capacitor/cli @capacitor/android
 
       - name: Prepare web folder
         run: |
@@ -36,13 +34,25 @@ jobs:
           cp icon.png www/
 
       - name: Initialize Capacitor
-        run: |
-          rm -f capacitor.config.json
-          rm -f capacitor.config.ts
-          npx cap init "LADY NAYRA" "com.ladynayra.billing" --web-dir www
+        run: npx cap init "LADY NAYRA" "com.ladynayra.billing" --web-dir www
 
       - name: Add Android platform
         run: npx cap add android
+
+      - name: Fix Kotlin versions
+        run: |
+          cat >> android/build.gradle <<'EOF'
+
+          allprojects {
+              configurations.all {
+                  resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+                      if (details.requested.group == "org.jetbrains.kotlin") {
+                          details.useVersion "1.8.22"
+                      }
+                  }
+              }
+          }
+          EOF
 
       - name: Copy web files
         run: npx cap copy android
@@ -54,11 +64,11 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
+          java-version: 17
 
       - name: Build APK
         working-directory: android
-        run: ./gradlew assembleDebug
+        run: ./gradlew clean assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
