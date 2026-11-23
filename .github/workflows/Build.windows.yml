@@ -27,21 +27,21 @@ jobs:
         run: npm install @capacitor/core @capacitor/cli
 
       - name: Install Electron
-        run: npm install electron electron-builder --save-dev
+        run: npm install --save-dev electron electron-builder
 
       - name: Prepare web folder
         shell: pwsh
         run: |
-          if (-not (Test-Path "www")) {
-            New-Item -ItemType Directory -Path "www"
+          New-Item -ItemType Directory -Force -Path www | Out-Null
+          Copy-Item index.html www/index.html -Force
+          if (Test-Path manifest.json) {
+            Copy-Item manifest.json www/manifest.json -Force
           }
-
-          if (Test-Path "index.html") {
-            Copy-Item "index.html" "www/index.html" -Force
+          if (Test-Path sw.js) {
+            Copy-Item sw.js www/sw.js -Force
           }
-
-          if (Test-Path "manifest.json") {
-            Copy-Item "manifest.json" "www/manifest.json" -Force
+          if (Test-Path icon.png) {
+            Copy-Item icon.png www/icon.png -Force
           }
 
       - name: Build Windows EXE
@@ -50,7 +50,8 @@ jobs:
       - name: Upload Windows EXE
         uses: actions/upload-artifact@v4
         with:
-          name: LADY-NAYRA-WINDOWS
+          name: LADY-NAYRA-Windows
           path: |
             dist/*.exe
             dist/*.msi
+          if-no-files-found: warn
